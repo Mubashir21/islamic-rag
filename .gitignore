@@ -1,5 +1,6 @@
 /venv
-/ingestion/__pycache__
-/data/raw/islamqa.jsonl
+__pycache__/
+/data
 /**.txt
 /test.py
+.env
