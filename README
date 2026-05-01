@@ -1,0 +1,230 @@
+# 🕌 Islamic RAG System
+
+A full-stack Retrieval-Augmented Generation (RAG) system for answering Islamic questions using authentic sources from IslamQA.
+
+---
+
+## 🚀 Overview
+
+This project builds an end-to-end AI system that:
+
+- Scrapes and processes thousands of Islamic Q&A (fatwas)
+- Converts them into structured, meaningful chunks
+- Embeds them using modern embedding models
+- Stores them in a vector database (Pinecone)
+- Retrieves relevant context for user queries
+- Generates grounded answers using an LLM
+
+---
+
+## 🧠 Architecture
+
+```text
+User Query
+    ↓
+Embedding (OpenAI)
+    ↓
+Pinecone Vector Search
+    ↓
+Top-k Relevant Chunks
+    ↓
+Context Builder
+    ↓
+LLM (RAG Prompt)
+    ↓
+Final Answer
+```
+
+---
+
+## 📦 Project Structure
+
+```text
+islamic-rag/
+│
+├── ingestion/              # Scraping IslamQA sitemap + pages
+│
+├── processing/             # Data processing pipelines
+│   ├── chunker.py          # Structure-aware chunking
+│   ├── embedder.py         # Embedding logic
+│   ├── run_chunking.py     # Chunking pipeline
+│   ├── run_embeddings.py   # Embedding pipeline
+│
+├── db/                     # Vector DB (Pinecone)
+│   ├── pinecone_client.py
+│   ├── create_index.py
+│   ├── upsert_vectors.py
+│   ├── query.py
+│
+├── rag/                    # RAG pipeline
+│   ├── retriever.py        # Retrieves relevant chunks
+│   ├── prompt_builder.py   # Builds context for LLM
+│   ├── generator.py        # Generates final answer
+│
+├── data/                   # (ignored) raw + processed data
+├── .env
+├── README.md
+```
+
+---
+
+## ⚙️ Features
+
+### 🔹 Data Pipeline
+
+- Async scraping from IslamQA sitemap
+- Structured parsing (title, question, answer, metadata)
+- JSONL-based streaming pipeline
+
+### 🔹 Chunking
+
+- Paragraph-based chunking (not naive token splitting)
+- Section-aware (handles I, II, III when present)
+- Context-enriched chunks (title + question included)
+
+### 🔹 Embeddings
+
+- OpenAI `text-embedding-3-large`
+- Batch processing for efficiency
+- ~100k+ chunks embedded
+
+### 🔹 Vector Database
+
+- Pinecone (serverless)
+- Cosine similarity search
+- Metadata filtering support
+
+### 🔹 RAG Pipeline
+
+- Top-k retrieval
+- Context construction
+- Controlled LLM prompting
+- Reduced hallucination via source grounding
+
+---
+
+## 🛠️ Setup
+
+### 1. Clone repo
+
+```bash
+git clone https://github.com/your-username/islamic-rag.git
+cd islamic-rag
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### 3. Set environment variables
+
+Create `.env`:
+
+```env
+OPENAI_API_KEY=your_key
+PINECONE_API_KEY=your_key
+```
+
+---
+
+### 4. Create Pinecone index
+
+```bash
+python db/create_index.py
+```
+
+---
+
+### 5. Run pipelines
+
+```bash
+# Chunking
+python processing/run_chunking.py
+
+# Embeddings
+python processing/run_embeddings.py
+
+# Upload to Pinecone
+python db/upsert_vectors.py
+```
+
+---
+
+## 🔍 Example Usage
+
+```python
+from rag.generator import generate_answer
+
+query = "Is giving lessons after prayer allowed?"
+answer = generate_answer(query)
+
+print(answer)
+```
+
+---
+
+## 📊 Data Scale
+
+- ~15,000+ fatwas
+- ~39,000+ chunks
+- ~30M+ tokens embedded
+- <$1 embedding cost
+
+---
+
+## ⚠️ Limitations
+
+- Retrieval quality depends on chunking + embedding quality
+- No reranking yet (planned)
+- No UI (planned React frontend)
+- Limited evaluation benchmarks
+
+---
+
+## 🔮 Future Improvements
+
+- 🔥 Reranking layer (major quality boost)
+- Hybrid search (semantic + keyword)
+- Chunk expansion
+- FastAPI backend
+- React frontend UI
+- Evaluation framework (accuracy testing)
+
+---
+
+## 🧠 Key Learnings
+
+- Chunking quality matters more than model choice
+- Metadata design is critical for retrieval
+- RAG systems fail silently without evaluation
+- Simpler architectures (like Pinecone) speed up iteration
+
+---
+
+## 🤝 Contributing
+
+Feel free to fork and experiment — especially with:
+
+- better chunking strategies
+- reranking models
+- UI improvements
+
+---
+
+## 📜 License
+
+MIT License
+
+---
+
+## ✨ Acknowledgements
+
+- IslamQA for dataset
+- OpenAI for embeddings + LLMs
+- Pinecone for vector search
