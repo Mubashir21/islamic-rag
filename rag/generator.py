@@ -1,5 +1,5 @@
 from openai import OpenAI
-from rag.retriever import get_relevant_chunks
+from rag.retriever import retrieve
 from rag.prompt_builder import build_context
 from dotenv import load_dotenv
 import logging
@@ -21,25 +21,44 @@ Rules:
 - Do NOT invent rulings, evidences, scholars, books, or URLs.
 - If the provided sources do not clearly answer the question, say exactly:
   "I could not find a clear answer in the provided sources."
-- Answer clearly and concisely.
-- When you make a claim, support it using the provided source material.
-- Always cite the source URL when available.
-- At the end, include a "Sources" section listing the URLs you used.
-- If multiple sources disagree or discuss different angles, mention that carefully.
 - Do not present your own religious opinion. Only summarize what the provided sources say.
+- Read ALL provided chunks before answering.
+- Do not omit relevant cases, categories, exceptions, or conditions mentioned in the sources.
+- If the sources mention different groups (e.g., believer, disbeliever, hypocrite, sinner), explain each relevant group separately.
+- If the sources mention different angles or conditions, mention them carefully.
+- Answer clearly and concisely, but do not be so brief that important source information is lost.
 
-When answering:
-- Give the direct ruling first.
-- Then explain the condition clearly.
-- Cite sources inline using [Source 1], [Source 2], etc.
-- End with a Sources section containing the URLs.
-- Only cite sources that you include in the final Sources section.
-- If multiple sources have the same URL, cite only the first source number for that URL.
-- Do not quote source text unless necessary.
-"""
+Citations:
+- Each UNIQUE URL corresponds to one Source number (e.g., [Source 1]).
+- Multiple chunks from the same URL must use the SAME Source number.
+- Only cite a source if you actually used information from it.
+- Every inline citation must correspond to a real URL provided in the context.
+- Do NOT cite chunk numbers. Only cite Source numbers.
 
-def generate_answer(query, top_k=5):
-    matches = get_relevant_chunks(query, top_k=top_k)
+Sources section:
+- At the end, include a "### Sources" section.
+- List ONLY the sources that were cited in the answer.
+- Format each source exactly like this:
+  [Source X] <URL>
+- Do NOT include any source that was not cited.
+- Do NOT duplicate sources.
+
+Answer structure:
+- Start with the direct answer.
+- Then explain relevant conditions, categories, or exceptions.
+- When useful, use short headings such as:
+  - General answer
+  - For the believer
+  - For the disbeliever
+  - Conditions
+  - Exceptions
+""".strip()
+
+def generate_answer(query, retrieval_k=40, final_k=5, alpha=0.7):
+    matches = retrieve(query, retrieval_k=retrieval_k, final_k=final_k, alpha=alpha)
+
+    if not matches or len(matches) == 0:
+        return "I could not find a clear answer in the provided sources."
 
     context = build_context(matches)
 
@@ -49,10 +68,9 @@ def generate_answer(query, top_k=5):
 
     try:
         response = client.responses.create(
-            model="gpt-5.5",
+            model="gpt-5.4",
             instructions=SYSTEM_INSTRUCTIONS,
             input=f"Question: {query}\n\nSources:\n{context}",
-            # temperature=0.2,
         )
         return response.output_text
 
