@@ -1,11 +1,8 @@
 from pinecone_text.sparse import BM25Encoder
 import json
 import os
-import pickle
 from tqdm import tqdm
-
-ENCODER_PATH = "retrieval/bm25_encoder.pkl"
-
+from backend.app.core.config import settings
 
 def fit_sparse_encoder(chunks_file):
     print("[SPARSE] Loading corpus...")
@@ -22,7 +19,7 @@ def fit_sparse_encoder(chunks_file):
 
     encoder = BM25Encoder(stem=False, remove_stopwords=False)
     encoder.fit(corpus)
-    encoder.dump(ENCODER_PATH)
+    encoder.dump(settings.bm25_encoder_path)
 
     print("[SPARSE] Encoder saved")
 
@@ -30,11 +27,11 @@ def fit_sparse_encoder(chunks_file):
 
 
 def load_sparse_encoder():
-    if not os.path.exists(ENCODER_PATH):
+    if not os.path.exists(settings.bm25_encoder_path):
         raise Exception("BM25 encoder not found. Run fit_sparse_encoder first.")
 
     encoder = BM25Encoder(stem=False, remove_stopwords=False)
-    encoder.load(ENCODER_PATH)
+    encoder.load(settings.bm25_encoder_path)
 
     return encoder
 

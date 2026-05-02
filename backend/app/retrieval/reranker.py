@@ -1,13 +1,7 @@
-import os
-from urllib import response
 import cohere
-from dotenv import load_dotenv
+from backend.app.core.config import settings
 
-load_dotenv()
-
-co = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
-
-RERANK_MODEL = "rerank-v4.0-pro"
+co = cohere.ClientV2(api_key=settings.cohere_api_key)
 
 
 def build_rerank_document(match):
@@ -30,7 +24,7 @@ def rerank_matches(query, matches, top_n=5):
     documents = [build_rerank_document(match) for match in matches]
 
     response = co.rerank(
-        model=RERANK_MODEL,
+        model=settings.rerank_model,
         query=query,
         documents=documents,
         top_n=top_n,

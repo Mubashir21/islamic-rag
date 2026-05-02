@@ -1,12 +1,9 @@
 from pinecone import Pinecone, ServerlessSpec
-import os
-from dotenv import load_dotenv
+from backend.app.core.config import settings
 
-load_dotenv()
+pc = Pinecone(api_key=settings.pinecone_api_key)
 
-pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-
-INDEX_NAME  = "islamic-rag-hybrid"
+INDEX_NAME = settings.pinecone_index_name
 
 # Create index if it doesn't exist
 if INDEX_NAME  not in pc.list_indexes().names():

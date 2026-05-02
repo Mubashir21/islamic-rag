@@ -1,11 +1,9 @@
 from openai import OpenAI
 import json
 from tqdm import tqdm
-from dotenv import load_dotenv
+from backend.app.core.config import settings
 
-load_dotenv()
-
-client = OpenAI()
+client = OpenAI(api_key=settings.openai_api_key)
 
 def build_embedding_input(chunk):
     return f"""
@@ -18,10 +16,10 @@ def build_embedding_input(chunk):
         """.strip()
 
 
-def embed_batch(texts, model="text-embedding-3-large"):
+def embed_batch(texts):
     response = client.embeddings.create(
         input=texts,
-        model=model
+        model=settings.embedding_model
     )
     return [d.embedding for d in response.data]
 

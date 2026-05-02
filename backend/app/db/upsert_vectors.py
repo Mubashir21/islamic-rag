@@ -1,8 +1,9 @@
 from tqdm import tqdm
 import json
+from backend.app.core.config import settings
 
-from db.pinecone_client import get_index
-from retrieval.sparse import load_sparse_encoder, encode_sparse, build_sparse_input
+from backend.app.db.pinecone_client import get_index
+from backend.app.retrieval.sparse import load_sparse_encoder, encode_sparse, build_sparse_input
 
 def run_upsert(file_path, batch_size=100):
 
@@ -40,12 +41,12 @@ def run_upsert(file_path, batch_size=100):
             batch.append(vector)
 
             if len(batch) == batch_size:
-                index.upsert(vectors=batch, namespace="islamic-rag-v1")
+                index.upsert(vectors=batch, namespace=settings.pinecone_namespace)
                 batch = []
 
     # flush remaining
     if batch:
-        index.upsert(vectors=batch, namespace="islamic-rag-v1")
+        index.upsert(vectors=batch, namespace=settings.pinecone_namespace)
 
     print("Hybrid upload complete")
 

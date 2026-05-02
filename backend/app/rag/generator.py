@@ -1,16 +1,14 @@
 from openai import OpenAI
-from rag.retriever import retrieve
-from rag.prompt_builder import build_context
-from dotenv import load_dotenv
+from backend.app.rag.retriever import retrieve
+from backend.app.rag.prompt_builder import build_context
 import logging
 import argparse
-
-load_dotenv()
+from backend.app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-client = OpenAI()
+client = OpenAI(api_key=settings.openai_api_key)
 
 SYSTEM_INSTRUCTIONS = """
 You are an assistant answering Islamic questions using a retrieval-augmented generation system.
@@ -54,8 +52,8 @@ Answer structure:
   - Exceptions
 """.strip()
 
-def generate_answer(query, retrieval_k=40, final_k=5, alpha=0.7):
-    matches = retrieve(query, retrieval_k=retrieval_k, final_k=final_k, alpha=alpha)
+def generate_answer(query):
+    matches = retrieve(query)
 
     if not matches or len(matches) == 0:
         return "I could not find a clear answer in the provided sources."
@@ -68,7 +66,7 @@ def generate_answer(query, retrieval_k=40, final_k=5, alpha=0.7):
 
     try:
         response = client.responses.create(
-            model="gpt-5.4",
+            model=settings.generation_model,
             instructions=SYSTEM_INSTRUCTIONS,
             input=f"Question: {query}\n\nSources:\n{context}",
         )
