@@ -49,7 +49,7 @@ def get_settings() -> Settings:
 
         # OpenAI
         embedding_model=os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large"),
-        generation_model=os.getenv("OPENAI_GENERATION_MODEL", "gpt-5.5"),
+        generation_model=os.getenv("OPENAI_GENERATION_MODEL", "gpt-5.4"),
 
         # Cohere
         rerank_model=os.getenv("COHERE_RERANK_MODEL", "rerank-v4.0-pro"),
