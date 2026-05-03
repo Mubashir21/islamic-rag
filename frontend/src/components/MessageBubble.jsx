@@ -29,7 +29,7 @@ function AssistantBubble({ text, sources, loading }) {
   return (
     <div className="flex justify-start">
       <Card className="max-w-[85%] px-4 py-3">
-        <div className="prose prose-sm prose-neutral max-w-none text-foreground
+        <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-foreground
           [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1
           [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-2
           [&_ul]:text-sm [&_ul]:pl-4 [&_ul]:mb-2

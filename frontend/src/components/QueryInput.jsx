@@ -42,7 +42,7 @@ export default function QueryInput({ onSubmit, disabled }) {
         </Button>
       </div>
       <p className="text-center text-xs text-muted-foreground mt-2">
-        Answers are AI-generated summaries of IslamQA fatwas. Always verify with a qualified scholar.
+        Answers are AI-generated summaries of IslamQA Q&As. Always verify with a qualified scholar.
       </p>
     </div>
   )
