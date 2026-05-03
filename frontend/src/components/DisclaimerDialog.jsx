@@ -14,7 +14,7 @@ export default function DisclaimerDialog() {
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs gap-1.5">
           <TriangleAlert className="w-3.5 h-3.5" />
-          Disclaimer
+          <span className="hidden sm:inline">Disclaimer</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
