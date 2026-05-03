@@ -1,0 +1,22 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Data (large, not needed at runtime)
+data/
+
+# Frontend (served separately on Vercel)
+frontend/
+
+# Ingestion and processing scripts (not needed at runtime)
+ingestion/
+processing/
+
+# Misc
+.env
+.git/
+*.txt
+*.md
