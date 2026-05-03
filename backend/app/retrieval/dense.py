@@ -1,4 +1,11 @@
-from processing.embedder import embed_batch
+from openai import OpenAI
+from backend.app.core.config import settings
 
-def encode_dense(query):
-    return embed_batch([query])[0]
+client = OpenAI(api_key=settings.openai_api_key)
+
+def encode_dense(query: str) -> list[float]:
+    response = client.embeddings.create(
+        input=[query],
+        model=settings.embedding_model,
+    )
+    return response.data[0].embedding
