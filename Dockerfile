@@ -1,6 +1,4 @@
 # ── Stage 1: builder ──────────────────────────────────────────────────────────
-# Install dependencies into a separate layer so they don't need to be
-# reinstalled every time we change app code.
 FROM python:3.11.15-slim AS builder
 
 WORKDIR /install
@@ -14,17 +12,20 @@ RUN pip install --upgrade pip && \
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM python:3.11.15-slim
 
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
 WORKDIR /app
 
 # Copy installed packages from builder
 COPY --from=builder /install/packages /usr/local
 
 # Copy only what the backend needs at runtime
-COPY backend/ ./backend/
-COPY artifacts/ ./artifacts/
+COPY --chown=user backend/ ./backend/
+COPY --chown=user artifacts/ ./artifacts/
 
 # HuggingFace Spaces requires port 7860
 EXPOSE 7860
 
-# Run the FastAPI app
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "7860"]
