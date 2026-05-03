@@ -3,6 +3,7 @@ from backend.app.rag.retriever import retrieve
 from backend.app.rag.prompt_builder import build_context
 import logging
 import argparse
+import json
 from backend.app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -74,6 +75,26 @@ def generate_answer(query):
 
     except Exception as e:
         return f"An error occurred while generating the answer: {e}"
+    
+def stream_answer(query: str):
+    matches = retrieve(query)
+    context = build_context(matches)
+
+    stream = client.responses.create(
+        model=settings.generation_model,
+        instructions=SYSTEM_INSTRUCTIONS,
+        input=f"Question: {query}\n\nSources:\n{context}",
+        stream=True,
+    )
+
+    try:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                yield f"data: {json.dumps(event.delta)}\n\n"
+
+            yield "event: done\ndata: [DONE]\n\n"
+    except Exception as e:
+        yield f"data: An error occurred while generating the answer: {e}\n\n"
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ask a question to the Islamic RAG system.")
