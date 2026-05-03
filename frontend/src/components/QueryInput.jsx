@@ -30,7 +30,7 @@ export default function QueryInput({ onSubmit, disabled }) {
           placeholder="Ask an Islamic question…"
           disabled={disabled}
           rows={1}
-          className="resize-none min-h-[40px] max-h-[120px] overflow-y-auto flex-1 text-sm"
+          className="resize-none min-h-[40px] max-h-[120px] overflow-y-auto flex-1 text-base sm:text-sm"
         />
         <Button
           onClick={handleSubmit}

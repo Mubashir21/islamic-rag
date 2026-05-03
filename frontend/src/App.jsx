@@ -51,7 +51,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[100dvh] bg-background">
       <Header />
       <ChatWindow messages={messages} onExampleSelect={handleSubmit} />
       <QueryInput onSubmit={handleSubmit} disabled={loading} />
