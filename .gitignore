@@ -1,9 +1,18 @@
+# Python
 /venv
 __pycache__/
-/data
-/*.txt
-/test.py
-.env
 *.pyc
 *.pkl
+
+# Data & secrets
+/data
+.env
+.env.*
+
+# Dev artifacts
+/test.py
+/*.txt
 *.jsonl
+
+# Node (root level)
+node_modules/
