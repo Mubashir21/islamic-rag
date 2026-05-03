@@ -44,8 +44,8 @@ def get_settings() -> Settings:
         cohere_api_key=os.getenv("COHERE_API_KEY", ""),
 
         # Pinecone
-        pinecone_index_name=os.getenv("PINECONE_INDEX_NAME", "islamic-rag"),
-        pinecone_namespace=os.getenv("PINECONE_NAMESPACE", "islamic-rag-v2"),
+        pinecone_index_name=os.getenv("PINECONE_INDEX_NAME", "islamic-rag-hybrid"),
+        pinecone_namespace=os.getenv("PINECONE_NAMESPACE", "islamic-rag-v1"),
 
         # OpenAI
         embedding_model=os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large"),
@@ -55,9 +55,9 @@ def get_settings() -> Settings:
         rerank_model=os.getenv("COHERE_RERANK_MODEL", "rerank-v4.0-pro"),
 
         # Retrieval defaults
-        retrieval_k=int(os.getenv("RETRIEVAL_K", "20")),
+        retrieval_k=int(os.getenv("RETRIEVAL_K", "40")),
         final_k=int(os.getenv("FINAL_K", "5")),
-        hybrid_alpha=float(os.getenv("HYBRID_ALPHA", "0.6")),
+        hybrid_alpha=float(os.getenv("HYBRID_ALPHA", "0.8")),
 
         # Artifacts
         bm25_encoder_path=os.getenv(
