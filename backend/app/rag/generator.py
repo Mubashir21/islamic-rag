@@ -77,24 +77,33 @@ def generate_answer(query):
         return f"An error occurred while generating the answer: {e}"
     
 def stream_answer(query: str):
-    matches = retrieve(query)
-    context = build_context(matches)
-
-    stream = client.responses.create(
-        model=settings.generation_model,
-        instructions=SYSTEM_INSTRUCTIONS,
-        input=f"Question: {query}\n\nSources:\n{context}",
-        stream=True,
-    )
+    try:
+        matches = retrieve(query)
+        context = build_context(matches)
+    except Exception as e:
+        logger.error(f"Retrieval failed: {e}")
+        yield f"data: {json.dumps('Sorry, the search service is temporarily unavailable. This is likely due to a rate limit — please wait a moment and try again.')}\n\n"
+        yield "event: done\ndata: [DONE]\n\n"
+        return
 
     try:
+        stream = client.responses.create(
+            model=settings.generation_model,
+            instructions=SYSTEM_INSTRUCTIONS,
+            input=f"Question: {query}\n\nSources:\n{context}",
+            stream=True,
+        )
+
         for event in stream:
             if event.type == "response.output_text.delta":
                 yield f"data: {json.dumps(event.delta)}\n\n"
 
-            yield "event: done\ndata: [DONE]\n\n"
+        yield "event: done\ndata: [DONE]\n\n"
+
     except Exception as e:
-        yield f"data: An error occurred while generating the answer: {e}\n\n"
+        logger.error(f"Generation failed: {e}")
+        yield f"data: {json.dumps('Sorry, the answer could not be generated. This may be due to an API issue — please try again shortly.')}\n\n"
+        yield "event: done\ndata: [DONE]\n\n"
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ask a question to the Islamic RAG system.")

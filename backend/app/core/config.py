@@ -32,6 +32,9 @@ class Settings:
     # Artifacts
     bm25_encoder_path: str
 
+    # CORS
+    frontend_url: str
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings(
@@ -61,6 +64,9 @@ def get_settings() -> Settings:
             "BM25_ENCODER_PATH",
             "artifacts/bm25_encoder.pkl"
         ),
+
+        # CORS
+        frontend_url=os.getenv("FRONTEND_URL", "http://localhost:5173"),
     )
 
 
