@@ -1,230 +1,210 @@
-# 🕌 Islamic RAG System
+<img src="frontend/public/favicon.svg" width="64" height="64" alt="Daleel AI logo" />
 
-A full-stack Retrieval-Augmented Generation (RAG) system for answering Islamic questions using authentic sources from IslamQA.
+# Daleel AI
 
----
-
-## 🚀 Overview
-
-This project builds an end-to-end AI system that:
-
-- Scrapes and processes thousands of Islamic Q&A (fatwas)
-- Converts them into structured, meaningful chunks
-- Embeds them using modern embedding models
-- Stores them in a vector database (Pinecone)
-- Retrieves relevant context for user queries
-- Generates grounded answers using an LLM
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-0ea5e9?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-000000?style=for-the-badge&logo=pinecone&logoColor=white)](https://pinecone.io/)
+[![Cohere](https://img.shields.io/badge/Cohere-D97757?style=for-the-badge&logo=cohere&logoColor=white)](https://cohere.com/)
 
 ---
 
-## 🧠 Architecture
+## About
 
-```text
-User Query
-    ↓
-Embedding (OpenAI)
-    ↓
-Pinecone Vector Search
-    ↓
-Top-k Relevant Chunks
-    ↓
-Context Builder
-    ↓
-LLM (RAG Prompt)
-    ↓
-Final Answer
+I use [IslamQA](https://islamqa.info) regularly for Islamic rulings and guidance. The problem: finding a precise answer is slow. A single topic can have multiple overlapping Q&As, answers are often long without a summary, and you end up reading through several pages just to find what you need.
+
+I built Daleel AI to fix that — ask a question in plain English and get a direct, summarised answer with the relevant sources cited. No browsing, no skimming.
+
+It was also a hands-on project to properly learn RAG end-to-end, built by [Mubashir](https://github.com/Mubashir21).
+
+**Live demo:** _coming soon_
+
+---
+
+## How It Works
+
+Most RAG demos stop at basic semantic search. Daleel AI goes further:
+
+1. **Hybrid retrieval** — the question is embedded and matched against ~39,000 IslamQA chunks using both dense vector search (OpenAI embeddings) and sparse keyword search (BM25), so neither purely semantic nor purely keyword queries fall through
+2. **Reranking** — top 40 candidates are reranked by Cohere's reranking model to surface the 5 most relevant passages, significantly improving quality over single-stage retrieval
+3. **Generation** — gpt-5.4 generates a grounded answer using only the retrieved sources, strictly instructed to cite every claim and say "I could not find a clear answer" rather than hallucinate
+4. **Streaming** — the answer streams back token by token via SSE; the `### Sources` block is parsed client-side and rendered as links
+
+---
+
+## Stack
+
+| Layer         | Technology                                  |
+| ------------- | ------------------------------------------- |
+| Frontend      | React + Vite, Tailwind CSS v4, shadcn/ui    |
+| Backend       | FastAPI, Python                             |
+| Embeddings    | OpenAI `text-embedding-3-large` (3072 dims) |
+| Vector DB     | Pinecone (serverless, hybrid index)         |
+| Sparse search | BM25 via `pinecone-text`                    |
+| Reranking     | Cohere `rerank-v4.0-pro`                    |
+| Generation    | OpenAI gpt-5.4 (responses API)              |
+
+---
+
+## Project Structure
+
 ```
-
----
-
-## 📦 Project Structure
-
-```text
-islamic-rag/
-│
-├── ingestion/              # Scraping IslamQA sitemap + pages
+daleel-ai/
+├── ingestion/              # Async scraper for IslamQA
+│   ├── pipeline.py
+│   ├── parser.py
+│   ├── io.py
+│   └── run_ingestion.py
 │
 ├── processing/             # Data processing pipelines
-│   ├── chunker.py          # Structure-aware chunking
-│   ├── embedder.py         # Embedding logic
-│   ├── run_chunking.py     # Chunking pipeline
-│   ├── run_embeddings.py   # Embedding pipeline
+│   ├── chunker.py          # Paragraph-aware chunking
+│   ├── embedder.py         # OpenAI batch embedder
+│   ├── run_chunking.py
+│   └── run_embeddings.py
 │
-├── db/                     # Vector DB (Pinecone)
-│   ├── pinecone_client.py
-│   ├── create_index.py
-│   ├── upsert_vectors.py
-│   ├── query.py
+├── backend/app/            # FastAPI backend
+│   ├── main.py
+│   ├── api/routes.py       # /query and /query/stream endpoints
+│   ├── core/config.py      # Centralised settings
+│   ├── rag/                # RAG pipeline
+│   │   ├── retriever.py
+│   │   ├── generator.py
+│   │   └── prompt_builder.py
+│   ├── retrieval/          # Search implementations
+│   │   ├── dense.py
+│   │   ├── sparse.py
+│   │   ├── hybrid.py
+│   │   └── reranker.py
+│   ├── db/                 # Pinecone client + setup
+│   └── schemas/query.py
 │
-├── rag/                    # RAG pipeline
-│   ├── retriever.py        # Retrieves relevant chunks
-│   ├── prompt_builder.py   # Builds context for LLM
-│   ├── generator.py        # Generates final answer
+├── frontend/               # React frontend (Daleel AI)
+│   └── src/
+│       ├── components/
+│       └── lib/api.js
 │
-├── data/                   # (ignored) raw + processed data
-├── .env
-├── README.md
+├── artifacts/
+│   └── bm25_encoder.pkl    # Fitted BM25 encoder
+│
+└── data/                   # (gitignored) raw + processed data
 ```
 
 ---
 
-## ⚙️ Features
+## Setup
 
-### 🔹 Data Pipeline
-
-- Async scraping from IslamQA sitemap
-- Structured parsing (title, question, answer, metadata)
-- JSONL-based streaming pipeline
-
-### 🔹 Chunking
-
-- Paragraph-based chunking (not naive token splitting)
-- Section-aware (handles I, II, III when present)
-- Context-enriched chunks (title + question included)
-
-### 🔹 Embeddings
-
-- OpenAI `text-embedding-3-large`
-- Batch processing for efficiency
-- ~100k+ chunks embedded
-
-### 🔹 Vector Database
-
-- Pinecone (serverless)
-- Cosine similarity search
-- Metadata filtering support
-
-### 🔹 RAG Pipeline
-
-- Top-k retrieval
-- Context construction
-- Controlled LLM prompting
-- Reduced hallucination via source grounding
-
----
-
-## 🛠️ Setup
-
-### 1. Clone repo
+### 1. Clone
 
 ```bash
-git clone https://github.com/your-username/islamic-rag.git
+git clone https://github.com/Mubashir21/islamic-rag.git
 cd islamic-rag
 ```
 
----
-
-### 2. Install dependencies
+### 2. Install backend dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
----
+### 3. Configure environment variables
 
-### 3. Set environment variables
-
-Create `.env`:
+Create a `.env` file at the root:
 
 ```env
-OPENAI_API_KEY=your_key
-PINECONE_API_KEY=your_key
+OPENAI_API_KEY=
+PINECONE_API_KEY=
+COHERE_API_KEY=
+
+PINECONE_INDEX_NAME=islamic-rag
+PINECONE_NAMESPACE=islamic-rag-v1
+
+OPENAI_EMBEDDING_MODEL=text-embedding-3-large
+OPENAI_GENERATION_MODEL=gpt-5.4
+COHERE_RERANK_MODEL=rerank-v4.0-pro
+
+RETRIEVAL_K=40
+FINAL_K=5
+HYBRID_ALPHA=0.8
+
+FRONTEND_URL=http://localhost:5173
 ```
 
----
-
-### 4. Create Pinecone index
+### 4. Run the data pipeline (first time only)
 
 ```bash
-python db/create_index.py
-```
+# Scrape IslamQA
+python ingestion/run_ingestion.py
 
----
-
-### 5. Run pipelines
-
-```bash
-# Chunking
+# Chunk the raw data
 python processing/run_chunking.py
 
-# Embeddings
+# Embed the chunks
 python processing/run_embeddings.py
 
 # Upload to Pinecone
-python db/upsert_vectors.py
+python backend/app/db/upsert_vectors.py
+```
+
+### 5. Start the backend
+
+```bash
+uvicorn backend.app.main:app --reload
+```
+
+### 6. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
 
-## 🔍 Example Usage
+## API
 
-```python
-from rag.generator import generate_answer
+| Method | Endpoint        | Description                 |
+| ------ | --------------- | --------------------------- |
+| POST   | `/query`        | Returns full answer as JSON |
+| POST   | `/query/stream` | Streams answer via SSE      |
+| GET    | `/health`       | Health check                |
 
-query = "Is giving lessons after prayer allowed?"
-answer = generate_answer(query)
+**Request body:**
 
-print(answer)
+```json
+{ "query": "What is the ruling on combining prayers while travelling?" }
 ```
 
 ---
 
-## 📊 Data Scale
+## Data
 
-- ~15,000+ fatwas
-- ~39,000+ chunks
-- ~30M+ tokens embedded
-- <$1 embedding cost
-
----
-
-## ⚠️ Limitations
-
-- Retrieval quality depends on chunking + embedding quality
-- No reranking yet (planned)
-- No UI (planned React frontend)
-- Limited evaluation benchmarks
+- ~15,000 IslamQA questions and answers scraped
+- ~39,000 chunks after paragraph-aware splitting
+- Chunks include title, question, URL and source metadata
 
 ---
 
-## 🔮 Future Improvements
+## Roadmap
 
-- 🔥 Reranking layer (major quality boost)
-- Hybrid search (semantic + keyword)
-- Chunk expansion
-- FastAPI backend
-- React frontend UI
-- Evaluation framework (accuracy testing)
+- [ ] Cron job to automatically fetch new and updated IslamQA content
 
 ---
 
-## 🧠 Key Learnings
+## Disclaimer
 
-- Chunking quality matters more than model choice
-- Metadata design is critical for retrieval
-- RAG systems fail silently without evaluation
-- Simpler architectures (like Pinecone) speed up iteration
+This tool is a personal project. Answers are AI-generated summaries of IslamQA content and may be incomplete or incorrect. Always verify with a qualified Islamic scholar.
 
 ---
 
-## 🤝 Contributing
+## Acknowledgements
 
-Feel free to fork and experiment — especially with:
-
-- better chunking strategies
-- reranking models
-- UI improvements
-
----
-
-## 📜 License
-
-MIT License
-
----
-
-## ✨ Acknowledgements
-
-- IslamQA for dataset
-- OpenAI for embeddings + LLMs
-- Pinecone for vector search
+- [IslamQA](https://islamqa.info) for the source content
+- [OpenAI](https://openai.com) for embeddings and generation
+- [Pinecone](https://pinecone.io) for vector search
+- [Cohere](https://cohere.com) for reranking
