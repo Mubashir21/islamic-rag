@@ -22,7 +22,7 @@ I built Daleel AI to fix that — ask a question in plain English and get a dire
 
 It was also a hands-on project to properly learn RAG end-to-end, built by [Mubashir](https://github.com/Mubashir21).
 
-**Live demo:** _coming soon_
+**Live demo:** [islamic-rag-ten.vercel.app](https://islamic-rag-ten.vercel.app)
 
 ---
 
