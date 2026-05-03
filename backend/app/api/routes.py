@@ -25,7 +25,13 @@ def query(request: QueryRequest):
 
 @router.post("/query/stream")
 def query_stream(request: QueryRequest):
-    return StreamingResponse(
-        stream_answer(request.query),
-        media_type="text/event-stream"
-    )
+    try:
+        return StreamingResponse(
+            stream_answer(request.query),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate streaming answer: {str(e)}"
+        )
