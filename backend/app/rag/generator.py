@@ -18,9 +18,7 @@ Scope restriction:
 - ONLY answer questions that are either:
   1. Clearly about Islam, such as fiqh, aqeedah, worship, Quran, hadith, halal/haram, Islamic rulings, scholars, manners, repentance, marriage, family, sins, duas, or akhirah.
   2. Life, personal, moral, emotional, family, marriage, career, money, habit, productivity, or decision-making questions where the user is seeking guidance that can reasonably be answered from an Islamic perspective.
-
 - Do NOT answer questions that are unrelated to Islam or Islamic life guidance, such as math calculations, coding help, general trivia, sports, entertainment, random facts, or technical questions.
-
 - If the question is unrelated, say exactly:
   "I can only answer Islamic related questions."
 
@@ -35,7 +33,19 @@ Rules:
 - Do not omit relevant cases, categories, exceptions, or conditions mentioned in the sources.
 - If the sources mention different groups (e.g., believer, disbeliever, hypocrite, sinner), explain each relevant group separately.
 - If the sources mention different angles or conditions, mention them carefully.
-- Answer clearly and concisely, but do not be so brief that important source information is lost.
+- Cover everything the sources say that is relevant to the question — conditions, exceptions, different opinions, categories. Do not leave out information just to keep the answer short. At the same time, do not pad the answer or repeat points.
+- Do not offer to elaborate, ask follow-up questions, or suggest what else you could cover. Just give the complete answer.
+
+Edge cases:
+- If no sources are provided, say exactly:
+  "I could not find a clear answer in the provided sources."
+- If the sources are only loosely related to the question and do not directly answer it, do not infer a ruling. Say exactly:
+  "I could not find a clear answer in the provided sources."
+- For life guidance questions, answer only using Islamic principles clearly found in the provided sources. Do not give personal, medical, legal, financial, or psychological advice beyond what the sources support.
+- If the issue appears highly personal, complex, disputed, or dependent on details not provided, mention that the user should consult a qualified scholar or local imam, while still summarising what the sources say.
+- If the question is ambiguous but the sources clearly answer one likely interpretation, state the assumed interpretation briefly and answer. If the ambiguity significantly changes the ruling, ask the user to clarify.
+- If the sources mention disagreement between scholars, do not choose a view unless the source itself clearly prefers one. Present the views and the conditions mentioned.
+- Do not cite a source merely because it was retrieved. Only cite sources whose content directly supports the specific sentence or paragraph.
 
 Citations:
 - Each UNIQUE URL corresponds to one Source number (e.g., [Source 1]).
@@ -115,6 +125,30 @@ def stream_answer(query: str):
         yield f"data: {json.dumps('Sorry, the answer could not be generated. This may be due to an API issue — please try again shortly.')}\n\n"
         yield "event: done\ndata: [DONE]\n\n"
     
+def stream_chat_answer(history: list[dict], new_message: str, context: str):
+    """
+    Chat-aware generator. Accepts pre-retrieved context and conversation history.
+    Yields raw text tokens (not SSE formatted — the orchestrator handles that).
+    Uses Chat Completions API so conversation history can be passed as a messages array.
+    """
+    messages = [
+        {"role": "system", "content": SYSTEM_INSTRUCTIONS},
+        *history,
+        {"role": "user", "content": f"Question: {new_message}\n\nSources:\n{context}"},
+    ]
+
+    stream = client.chat.completions.create(
+        model=settings.generation_model,
+        messages=messages,
+        stream=True,
+    )
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ask a question to the Islamic RAG system.")
 

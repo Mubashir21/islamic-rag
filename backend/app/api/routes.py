@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from backend.app.schemas.query import QueryRequest, QueryResponse
-from backend.app.rag.generator import generate_answer
 from fastapi.responses import StreamingResponse
-from backend.app.rag.generator import stream_answer
+from backend.app.schemas.query import QueryRequest, QueryResponse, ChatRequest
+from backend.app.rag.generator import generate_answer, stream_answer
+from backend.app.rag.orchestrator import stream_chat
+from backend.app.core.session_store import get_or_create_session
+import json
 
 router = APIRouter()
 
@@ -35,3 +37,15 @@ def query_stream(request: QueryRequest):
             status_code=500,
             detail=f"Failed to generate streaming answer: {str(e)}"
         )
+
+
+@router.post("/chat/stream")
+def chat_stream(request: ChatRequest):
+    session_id, conversation = get_or_create_session(request.session_id)
+
+    def event_stream():
+        # First event sends the session_id back to the client so it can reuse it
+        yield f"event: session\ndata: {json.dumps({'session_id': session_id})}\n\n"
+        yield from stream_chat(conversation, request.message)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")

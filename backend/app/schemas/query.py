@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
 
 class QueryRequest(BaseModel):
@@ -7,3 +7,7 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     answer: str
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None

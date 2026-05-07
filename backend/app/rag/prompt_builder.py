@@ -1,33 +1,29 @@
 def build_context(matches):
-    context_parts = []
+    if not matches:
+        return ""
+
+    # Group chunks by URL, preserving first-seen order
     url_to_source = {}
     source_counter = 1
+    grouped = {}
 
-    for i, match in enumerate(matches):
+    for match in matches:
         meta = match["metadata"]
         url = meta.get("url", "")
 
-        # source_block = f"""
-        #     [Source {i+1}]
-        #     Title: {meta.get('title', '')}
-        #     Question: {meta.get('question', '')}
-        #     URL: {meta.get('url', '')}
-
-        #     Content:
-        #     {meta.get('text', '')}
-        # """
         if url not in url_to_source:
             url_to_source[url] = source_counter
+            grouped[url] = []
             source_counter += 1
+
+        grouped[url].append(meta.get("text", "").strip())
+
+    # Build context blocks grouped by source
+    context_parts = []
+    for url, chunks in grouped.items():
         source_number = url_to_source[url]
-            
-        source_block = f"""
-            [Chunk {i + 1} | Source {source_number}]
-            URL: {meta.get('url', '')}
+        block = f"[Source {source_number}]\nURL: {url}\n\n"
+        block += "\n\n---\n\n".join(f"Chunk:\n{chunk}" for chunk in chunks)
+        context_parts.append(block)
 
-            Content:
-            {meta.get('text', '')}
-        """.strip()
-        context_parts.append(source_block.strip())
-
-    return "\n\n---\n\n".join(context_parts)
+    return "\n\n===\n\n".join(context_parts)
