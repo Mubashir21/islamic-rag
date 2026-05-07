@@ -20,6 +20,7 @@ class Settings:
     # OpenAI
     embedding_model: str
     generation_model: str
+    router_model: str
 
     # Cohere
     rerank_model: str
@@ -50,6 +51,7 @@ def get_settings() -> Settings:
         # OpenAI
         embedding_model=os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large"),
         generation_model=os.getenv("OPENAI_GENERATION_MODEL", "gpt-5.4"),
+        router_model=os.getenv("OPENAI_ROUTER_MODEL", "gpt-4o-mini"),
 
         # Cohere
         rerank_model=os.getenv("COHERE_RERANK_MODEL", "rerank-v4.0-pro"),
