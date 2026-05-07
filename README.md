@@ -28,26 +28,30 @@ It was also a hands-on project to properly learn RAG end-to-end, built by [Mubas
 
 ## How It Works
 
-Most RAG demos stop at basic semantic search. Daleel AI goes further:
+This is not a standard RAG pipeline. Daleel AI uses an agentic architecture that decides what to do with each message rather than blindly retrieving on every query:
 
-1. **Hybrid retrieval** — the question is embedded and matched against ~39,000 IslamQA chunks using both dense vector search (OpenAI embeddings) and sparse keyword search (BM25), so neither purely semantic nor purely keyword queries fall through
-2. **Reranking** — top 40 candidates are reranked by Cohere's reranking model to surface the 5 most relevant passages, significantly improving quality over single-stage retrieval
-3. **Generation** — gpt-5.4 generates a grounded answer using only the retrieved sources, strictly instructed to cite every claim and say "I could not find a clear answer" rather than hallucinate
-4. **Streaming** — the answer streams back token by token via SSE; the `### Sources` block is parsed client-side and rendered as links
+1. **Router** — a fast LLM call classifies the message: does it need new Islamic sources, can it be answered from conversation context, or is it out of scope?
+2. **Hybrid retrieval** — when retrieval is needed, the question is embedded and matched against ~39,000 IslamQA chunks using both dense vector search (OpenAI embeddings) and sparse keyword search (BM25), with query rewriting for follow-up questions
+3. **Reranking** — top 40 candidates are reranked by Cohere's reranking model to surface the 5 most relevant passages
+4. **Generation** — gpt-5.4 generates a grounded answer using only the retrieved sources, strictly instructed to cite every claim and say "I could not find a clear answer" rather than hallucinate
+5. **Streaming** — the answer streams back token by token via SSE with live status updates; the `### Sources` block is parsed client-side and rendered as links
+
+Conversation context is maintained per session with a 6-message sliding window. Follow-ups like "explain that more simply" skip retrieval entirely and reuse cached chunks from the previous turn.
 
 ---
 
 ## Stack
 
-| Layer         | Technology                                  |
-| ------------- | ------------------------------------------- |
-| Frontend      | React + Vite, Tailwind CSS v4, shadcn/ui    |
-| Backend       | FastAPI, Python                             |
-| Embeddings    | OpenAI `text-embedding-3-large` (3072 dims) |
-| Vector DB     | Pinecone (serverless, hybrid index)         |
-| Sparse search | BM25 via `pinecone-text`                    |
-| Reranking     | Cohere `rerank-v4.0-pro`                    |
-| Generation    | OpenAI gpt-5.4 (responses API)              |
+| Layer         | Technology                                       |
+| ------------- | ------------------------------------------------ |
+| Frontend      | React + Vite, Tailwind CSS v4, shadcn/ui         |
+| Backend       | FastAPI, Python                                  |
+| Embeddings    | OpenAI `text-embedding-3-large` (3072 dims)      |
+| Vector DB     | Pinecone (serverless, hybrid index)              |
+| Sparse search | BM25 via `pinecone-text`                         |
+| Reranking     | Cohere `rerank-v4.0-pro`                         |
+| Router        | OpenAI `gpt-4o-mini` (intent classification)     |
+| Generation    | OpenAI `gpt-5.4`                                 |
 
 ---
 
@@ -69,9 +73,14 @@ daleel-ai/
 │
 ├── backend/app/            # FastAPI backend
 │   ├── main.py
-│   ├── api/routes.py       # /query and /query/stream endpoints
-│   ├── core/config.py      # Centralised settings
-│   ├── rag/                # RAG pipeline
+│   ├── api/routes.py       # /chat/stream endpoint
+│   ├── core/
+│   │   ├── config.py       # Centralised settings
+│   │   └── session_store.py # In-memory sessions with TTL
+│   ├── rag/                # Agentic RAG pipeline
+│   │   ├── orchestrator.py  # Main control flow
+│   │   ├── router.py        # Intent classification
+│   │   ├── conversation.py  # Per-session state
 │   │   ├── retriever.py
 │   │   ├── generator.py
 │   │   └── prompt_builder.py
@@ -83,7 +92,7 @@ daleel-ai/
 │   ├── db/                 # Pinecone client + setup
 │   └── schemas/query.py
 │
-├── frontend/               # React frontend (Daleel AI)
+├── frontend/               # React frontend
 │   └── src/
 │       ├── components/
 │       └── lib/api.js
@@ -120,11 +129,12 @@ OPENAI_API_KEY=
 PINECONE_API_KEY=
 COHERE_API_KEY=
 
-PINECONE_INDEX_NAME=islamic-rag
+PINECONE_INDEX_NAME=islamic-rag-hybrid
 PINECONE_NAMESPACE=islamic-rag-v1
 
 OPENAI_EMBEDDING_MODEL=text-embedding-3-large
 OPENAI_GENERATION_MODEL=gpt-5.4
+OPENAI_ROUTER_MODEL=gpt-4o-mini
 COHERE_RERANK_MODEL=rerank-v4.0-pro
 
 RETRIEVAL_K=40
@@ -168,16 +178,25 @@ npm run dev
 
 ## API
 
-| Method | Endpoint        | Description                 |
-| ------ | --------------- | --------------------------- |
-| POST   | `/query`        | Returns full answer as JSON |
-| POST   | `/query/stream` | Streams answer via SSE      |
-| GET    | `/health`       | Health check                |
+| Method | Endpoint        | Description                          |
+| ------ | --------------- | ------------------------------------ |
+| POST   | `/chat/stream`  | Agentic chat with SSE status events  |
+| POST   | `/query/stream` | Legacy single-turn streaming         |
+| GET    | `/health`       | Health check                         |
 
-**Request body:**
+**Request body (`/chat/stream`):**
 
 ```json
-{ "query": "What is the ruling on combining prayers while travelling?" }
+{ "message": "What is the ruling on combining prayers while travelling?", "session_id": null }
+```
+
+**SSE event types:**
+
+```
+event: session   → {"session_id": "..."}
+event: status    → {"message": "Searching Islamic sources..."}
+event: token     → {"text": "..."}
+event: done      → {}
 ```
 
 ---
@@ -193,6 +212,7 @@ npm run dev
 ## Roadmap
 
 - [ ] Cron job to automatically fetch new and updated IslamQA content
+- [ ] Tools: gold/silver price and currency exchange for zakat calculations
 
 ---
 
