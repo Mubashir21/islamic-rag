@@ -17,11 +17,11 @@ export default function DisclaimerDialog() {
           <span className="hidden sm:inline">Disclaimer</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85dvh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Disclaimer</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+        <div className="space-y-3 text-sm text-muted-foreground leading-relaxed overflow-y-auto pr-1">
           <p>
             This tool is a personal project built to apply and learn about
             Retrieval-Augmented Generation (RAG). It is not a substitute for qualified Islamic scholarship.

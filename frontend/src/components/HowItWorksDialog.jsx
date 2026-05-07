@@ -36,11 +36,11 @@ export default function HowItWorksDialog() {
           <span className="hidden sm:inline">How it works</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85dvh] flex flex-col">
         <DialogHeader>
           <DialogTitle>How it works</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+        <div className="space-y-4 text-sm text-muted-foreground leading-relaxed overflow-y-auto pr-1">
           <div className="space-y-3">
             {steps.map((step, i) => (
               <div key={step.title} className="flex gap-3">
