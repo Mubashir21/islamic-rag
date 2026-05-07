@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import SourceList from "./SourceList"
+import CopyButton from "./CopyButton"
 
 function UserBubble({ text }) {
   return (
@@ -55,6 +56,9 @@ function AssistantBubble({ text, sources, loading, status }) {
           <ReactMarkdown>{text}</ReactMarkdown>
         </div>
         <SourceList sources={sources} />
+        <div className="mt-2 flex justify-end">
+          <CopyButton text={text} />
+        </div>
       </Card>
     </div>
   )
