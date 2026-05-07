@@ -10,8 +10,12 @@ import { Info } from "lucide-react"
 
 const steps = [
   {
+    title: "Routing",
+    body: "Each message is first classified: does it need new Islamic sources, or can it be answered from the conversation so far? Simple follow-ups like 'explain that more simply' skip retrieval entirely.",
+  },
+  {
     title: "Retrieval",
-    body: "Your question is converted into a vector embedding and matched against ~39,000 chunks derived from ~15,000 IslamQA questions and answers, stored in a Pinecone vector database using a combination of semantic and keyword search.",
+    body: "When new sources are needed, your question is matched against ~39,000 chunks from ~15,000 IslamQA questions and answers using hybrid search — combining semantic vector search and keyword search so neither vague nor specific queries fall through.",
   },
   {
     title: "Reranking",
@@ -19,7 +23,7 @@ const steps = [
   },
   {
     title: "Generation",
-    body: "The retrieved passages are passed to a language model along with strict instructions to only use the provided sources — no outside knowledge. The answer is streamed back in real time with inline citations.",
+    body: "The retrieved passages are passed to a language model with strict instructions to only use the provided sources — no outside knowledge. The answer streams back in real time with inline citations.",
   },
 ]
 
@@ -54,7 +58,7 @@ export default function HowItWorksDialog() {
           <div className="border-t border-border pt-3 space-y-1.5">
             <p className="font-medium text-foreground">Things to know</p>
             <ul className="space-y-1 list-disc list-inside">
-              <li>Messages are not connected — each question is answered independently, there is no conversation memory.</li>
+              <li>Conversation context is kept within your session. Closing or refreshing the page starts a fresh conversation.</li>
               <li>Cohere's free tier is used for reranking, which has a rate limit of 10 requests per minute.</li>
               <li>Source content is from IslamQA. All credit for the underlying knowledge goes to them.</li>
             </ul>
