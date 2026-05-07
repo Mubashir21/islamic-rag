@@ -35,16 +35,21 @@ function ThemeToggle() {
   );
 }
 
-export default function Header() {
+export default function Header({ onHome }) {
   return (
     <header className="border-b border-border bg-card px-6 py-3 shrink-0">
       <div className="max-w-3xl mx-auto flex items-center gap-3">
-        <DaleelIcon size={32} className="text-primary shrink-0" />
-        <div className="flex-1">
+        <button
+          onClick={onHome}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+          aria-label="Go to home"
+        >
+          <DaleelIcon size={32} className="text-primary shrink-0" />
           <h1 className="text-base font-semibold text-foreground leading-tight">
             Daleel AI
           </h1>
-        </div>
+        </button>
+        <div className="flex-1" />
         <div className="flex items-center gap-1">
           <HowItWorksDialog />
           <DisclaimerDialog />

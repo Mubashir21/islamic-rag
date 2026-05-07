@@ -13,8 +13,26 @@ function UserBubble({ text }) {
   )
 }
 
-function AssistantBubble({ text, sources, loading }) {
+function StatusIndicator({ status }) {
+  return (
+    <div className="flex justify-start">
+      <Card className="w-[85%] px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="flex gap-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+          </span>
+          <span className="text-sm text-muted-foreground">{status}</span>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function AssistantBubble({ text, sources, loading, status }) {
   if (loading) {
+    if (status) return <StatusIndicator status={status} />
     return (
       <div className="flex justify-start">
         <Card className="w-[85%] px-4 py-3 space-y-2">
@@ -49,6 +67,7 @@ export default function MessageBubble({ message }) {
       text={message.text}
       sources={message.sources}
       loading={message.loading}
+      status={message.status}
     />
   )
 }
