@@ -12,6 +12,7 @@ class Settings:
     openai_api_key: str
     pinecone_api_key: str
     cohere_api_key: str
+    posthog_api_key: str
 
     # Pinecone
     pinecone_index_name: str
@@ -43,6 +44,7 @@ def get_settings() -> Settings:
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         pinecone_api_key=os.getenv("PINECONE_API_KEY", ""),
         cohere_api_key=os.getenv("COHERE_API_KEY", ""),
+        posthog_api_key=os.getenv("POSTHOG_API_KEY", ""),
 
         # Pinecone
         pinecone_index_name=os.getenv("PINECONE_INDEX_NAME", "islamic-rag-hybrid"),

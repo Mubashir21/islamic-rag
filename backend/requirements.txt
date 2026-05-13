@@ -36,6 +36,7 @@ openai==2.33.0
 orjson==3.11.8
 packaging==26.2
 pinecone==8.1.2
+posthog==7.14.1
 pinecone-plugin-assistant==3.0.3
 pinecone-plugin-interface==0.0.7
 pinecone-text==0.11.0
