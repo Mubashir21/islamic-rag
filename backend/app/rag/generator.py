@@ -125,11 +125,11 @@ def stream_answer(query: str):
         yield f"data: {json.dumps('Sorry, the answer could not be generated. This may be due to an API issue — please try again shortly.')}\n\n"
         yield "event: done\ndata: [DONE]\n\n"
     
-def stream_chat_answer(history: list[dict], new_message: str, context: str):
+def stream_chat_answer(history: list[dict], new_message: str, context: str, usage: dict | None = None):
     """
     Chat-aware generator. Accepts pre-retrieved context and conversation history.
     Yields raw text tokens (not SSE formatted — the orchestrator handles that).
-    Uses Chat Completions API so conversation history can be passed as a messages array.
+    Populates the optional `usage` dict with token counts after streaming completes.
     """
     messages = [
         {"role": "system", "content": SYSTEM_INSTRUCTIONS},
@@ -141,12 +141,15 @@ def stream_chat_answer(history: list[dict], new_message: str, context: str):
         model=settings.generation_model,
         messages=messages,
         stream=True,
+        stream_options={"include_usage": True},
     )
 
     for chunk in stream:
-        delta = chunk.choices[0].delta.content
-        if delta:
-            yield delta
+        if chunk.choices and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+        if chunk.usage and usage is not None:
+            usage["input_tokens"] = chunk.usage.prompt_tokens
+            usage["output_tokens"] = chunk.usage.completion_tokens
 
 
 if __name__ == "__main__":

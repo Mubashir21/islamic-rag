@@ -1,10 +1,13 @@
 import json
+import time
 import logging
 from backend.app.rag.conversation import Conversation
 from backend.app.rag.router import route_message
 from backend.app.rag.retriever import retrieve
 from backend.app.rag.prompt_builder import build_context
 from backend.app.rag.generator import stream_chat_answer
+from backend.app.core.analytics import capture_chat
+from backend.app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,7 @@ def done_event() -> str:
 
 # ── Orchestrator ──────────────────────────────────────────────────────────────
 
-def stream_chat(conversation: Conversation, new_message: str):
+def stream_chat(conversation: Conversation, new_message: str, session_id: str = "anonymous"):
     """
     Main entry point for the agentic chat flow.
     Yields SSE-formatted strings: status events, token events, then done.
@@ -67,9 +70,11 @@ def stream_chat(conversation: Conversation, new_message: str):
     # Step 4: build context and stream the answer
     context = build_context(chunks)
     full_answer = ""
+    usage = {}
+    start_time = time.time()
 
     try:
-        for token in stream_chat_answer(conversation.get_history(), new_message, context):
+        for token in stream_chat_answer(conversation.get_history(), new_message, context, usage):
             full_answer += token
             yield token_event(token)
     except Exception as e:
@@ -81,6 +86,21 @@ def stream_chat(conversation: Conversation, new_message: str):
 
     yield done_event()
 
+    latency = round(time.time() - start_time, 2)
+
     # Step 5: update conversation history after a successful response
     conversation.add_message("user", new_message)
     conversation.add_message("assistant", full_answer)
+
+    # Step 6: log to PostHog
+    capture_chat(
+        session_id=session_id,
+        route=route,
+        question=new_message,
+        answer=full_answer,
+        model=settings.generation_model,
+        latency=latency,
+        retrieval_used=(route == "retrieval_needed"),
+        input_tokens=usage.get("input_tokens", 0),
+        output_tokens=usage.get("output_tokens", 0),
+    )

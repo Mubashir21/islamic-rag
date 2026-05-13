@@ -46,6 +46,6 @@ def chat_stream(request: ChatRequest):
     def event_stream():
         # First event sends the session_id back to the client so it can reuse it
         yield f"event: session\ndata: {json.dumps({'session_id': session_id})}\n\n"
-        yield from stream_chat(conversation, request.message)
+        yield from stream_chat(conversation, request.message, session_id)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
