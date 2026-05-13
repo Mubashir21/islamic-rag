@@ -1,12 +1,3 @@
----
-title: Daleel AI
-emoji: 📖
-colorFrom: green
-colorTo: green
-sdk: docker
-pinned: false
----
-
 <img src="frontend/public/favicon.svg" width="64" height="64" alt="Daleel AI logo" />
 
 # Daleel AI
