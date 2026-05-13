@@ -5,9 +5,8 @@ from backend.app.core.config import settings
 logger = logging.getLogger(__name__)
 
 posthog = Posthog(
-    api_key=settings.posthog_api_key,
+    settings.posthog_api_key,
     host="https://us.i.posthog.com",
-    on_error=lambda e, items: logger.warning(f"PostHog error: {e}"),
 )
 
 posthog.disabled = not bool(settings.posthog_api_key)
